@@ -1,0 +1,79 @@
+<section class="bc-phase bc-attack-phase">
+
+  <div class="bc-target-panel {{#unless target}}bc-untargeted{{/unless}}">
+    {{#if target}}
+      <img class="bc-target-img" src="{{target.img}}" alt="{{target.name}}"/>
+      <div class="bc-target-text">
+        <span class="bc-label">{{localize "BATTLECARD.Dialog.Target"}}</span>
+        <span class="bc-target-name">{{target.name}}</span>
+      </div>
+    {{else}}
+      <i class="fa-regular fa-circle-dashed bc-target-placeholder"></i>
+      <span class="bc-no-target">{{localize "BATTLECARD.Dialog.NoTargetSet"}}</span>
+    {{/if}}
+  </div>
+  {{#if multipleTargets}}
+    <p class="bc-notice"><i class="fa-solid fa-triangle-exclamation"></i> {{localize "BATTLECARD.Dialog.MultipleTargets"}}</p>
+  {{/if}}
+
+  <div class="bc-adv-toggle" role="group">
+    <button type="button" data-action="setAdvantage" data-adv="1" class="bc-adv {{#if isAdv}}active{{/if}}">
+      {{localize "BATTLECARD.Dialog.Advantage"}}
+    </button>
+    <button type="button" data-action="setAdvantage" data-adv="0" class="bc-normal {{#if isNormal}}active{{/if}}">
+      {{localize "BATTLECARD.Dialog.Normal"}}
+    </button>
+    <button type="button" data-action="setAdvantage" data-adv="-1" class="bc-dis {{#if isDis}}active{{/if}}">
+      {{localize "BATTLECARD.Dialog.Disadvantage"}}
+    </button>
+  </div>
+
+  <div class="bc-formula" aria-live="polite">{{formula}}</div>
+
+  <div class="bc-field">
+    <label>{{localize "BATTLECARD.Dialog.SituationalBonus"}}</label>
+    <input type="text" name="situational" value="{{situational}}" placeholder="+2, +1d4" autocomplete="off"/>
+  </div>
+
+  <div class="bc-field">
+    <label>{{localize "BATTLECARD.Dialog.RollMode"}}</label>
+    <select name="rollMode">
+      {{#each rollModes}}
+        <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+      {{/each}}
+    </select>
+  </div>
+
+  {{#if manual}}
+    <div class="bc-field bc-manual-field">
+      <label><i class="fa-solid fa-hand"></i> {{localize "BATTLECARD.Dialog.ManualD20"}}</label>
+      <div class="bc-manual-row">
+        <input type="number" name="manualValue" value="{{manualValue}}" min="1" max="20" step="1"/>
+        <span class="bc-manual-total">{{manualTotal}}</span>
+      </div>
+    </div>
+  {{/if}}
+
+  <footer class="bc-buttons">
+    <button type="button" data-action="rollAttack" class="bc-primary">
+      {{#if manual}}
+        <i class="fa-solid fa-hand"></i> {{localize "BATTLECARD.Dialog.AcceptManual"}}
+      {{else}}
+        <i class="fa-solid fa-dice-d20"></i> {{localize "BATTLECARD.Dialog.RollAttack"}}
+      {{/if}}
+    </button>
+    <div class="bc-button-row">
+      <button type="button" data-action="changeTarget">
+        <i class="fa-solid fa-crosshairs"></i> {{localize "BATTLECARD.Dialog.ChangeTarget"}}
+      </button>
+      <button type="button" data-action="noTarget">
+        <i class="fa-regular fa-circle-xmark"></i> {{localize "BATTLECARD.Dialog.NoTarget"}}
+      </button>
+      <button type="button" data-action="toggleManual" class="bc-manual-toggle {{#if manual}}active{{/if}}"
+              data-tooltip="{{localize "BATTLECARD.Dialog.ManualToggleHint"}}">
+        <i class="fa-solid fa-hand"></i>
+      </button>
+    </div>
+  </footer>
+
+</section>

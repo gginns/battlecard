@@ -1,0 +1,71 @@
+<section class="bc-phase bc-damage-phase">
+
+  {{!-- Attack result pinned at top so nobody looks back at chat (§4 Phase 2) --}}
+  <div class="bc-attack-result {{#if isCrit}}bc-crit{{/if}} {{#if isFumble}}bc-fumble{{/if}}">
+    <span class="bc-result-total">{{attackTotal}}</span>
+    <span class="bc-result-label">{{localize "BATTLECARD.Dialog.ToHit"}}</span>
+    {{#if target}}<span class="bc-result-target">vs {{target.name}}</span>{{/if}}
+    {{#if attackManual}}<i class="fa-solid fa-hand" data-tooltip="{{localize "BATTLECARD.ManualEntry"}}"></i>{{/if}}
+    {{#if isCrit}}<span class="bc-flag bc-flag-crit">{{localize "BATTLECARD.Dialog.NaturalTwenty"}}</span>{{/if}}
+    {{#if isFumble}}<span class="bc-flag bc-flag-fumble">{{localize "BATTLECARD.Dialog.NaturalOne"}}</span>{{/if}}
+  </div>
+
+  {{#if isPostPhase}}
+
+    <div class="bc-damage-result">
+      {{#if damage.miss}}
+        <span class="bc-miss-label">{{localize "BATTLECARD.Miss"}}</span>
+      {{else}}
+        <span class="bc-result-total">{{damage.total}}</span>
+        <span class="bc-result-label">{{damage.typeLabel}}</span>
+        {{#if damage.critical}}<span class="bc-flag bc-flag-crit">{{localize "BATTLECARD.Critical"}}</span>{{/if}}
+        {{#if damage.manual}}<i class="fa-solid fa-hand" data-tooltip="{{localize "BATTLECARD.ManualEntry"}}"></i>{{/if}}
+      {{/if}}
+    </div>
+
+    <footer class="bc-buttons">
+      <button type="button" data-action="done" class="bc-primary">
+        <i class="fa-solid fa-check"></i> {{localize "BATTLECARD.Dialog.Done"}}
+      </button>
+      <button type="button" data-action="attackAgain">
+        <i class="fa-solid fa-rotate-right"></i> {{localize "BATTLECARD.Dialog.AttackAgain"}}
+      </button>
+    </footer>
+
+  {{else}}
+
+    <div class="bc-formula" aria-live="polite">{{formula}}</div>
+
+    <div class="bc-field">
+      <label>{{localize "BATTLECARD.Dialog.SituationalBonus"}}</label>
+      <input type="text" name="situational" value="{{situational}}" placeholder="+1d6, +2" autocomplete="off"/>
+    </div>
+
+    {{#if manual}}
+      <div class="bc-field bc-manual-field">
+        <label><i class="fa-solid fa-hand"></i> {{localize "BATTLECARD.Dialog.ManualDamage"}}</label>
+        <input type="number" name="manualDamageValue" value="{{manualDamageValue}}" min="0" step="1"/>
+      </div>
+    {{/if}}
+
+    <footer class="bc-buttons">
+      <div class="bc-button-row bc-damage-buttons">
+        <button type="button" data-action="rollDamage" class="bc-primary {{#unless isCrit}}{{#unless isFumble}}bc-suggested{{/unless}}{{/unless}}">
+          <i class="fa-solid fa-burst"></i> {{localize "BATTLECARD.Dialog.Damage"}}
+        </button>
+        <button type="button" data-action="rollCritical" class="{{#if isCrit}}bc-suggested bc-crit{{/if}}">
+          <i class="fa-solid fa-explosion"></i> {{localize "BATTLECARD.Dialog.Critical"}}
+        </button>
+        <button type="button" data-action="miss" class="{{#if isFumble}}bc-suggested bc-fumble{{/if}}">
+          <i class="fa-solid fa-wind"></i> {{localize "BATTLECARD.Dialog.Miss"}}
+        </button>
+        <button type="button" data-action="toggleManual" class="bc-manual-toggle {{#if manual}}active{{/if}}"
+                data-tooltip="{{localize "BATTLECARD.Dialog.ManualToggleHint"}}">
+          <i class="fa-solid fa-hand"></i>
+        </button>
+      </div>
+    </footer>
+
+  {{/if}}
+
+</section>

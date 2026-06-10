@@ -1,0 +1,18 @@
+<div class="bc-dialog">
+  <header class="bc-header">
+    {{#if actorImg}}<img class="bc-actor-img" src="{{actorImg}}" alt="{{actorName}}"/>{{/if}}
+    <div class="bc-header-text">
+      <div class="bc-actor-name">{{actorName}}</div>
+      <div class="bc-item-row">
+        {{#if itemImg}}<img class="bc-item-img" src="{{itemImg}}" alt=""/>{{/if}}
+        <span class="bc-item-name">{{itemName}}</span>
+        {{#if showAttackCounter}}<span class="bc-attack-counter">{{localize "BATTLECARD.Dialog.AttackN" number=attackNumber}}</span>{{/if}}
+      </div>
+    </div>
+  </header>
+  {{#if isAttackPhase}}
+    {{> "modules/battlecard/templates/attack-phase.hbs"}}
+  {{else}}
+    {{> "modules/battlecard/templates/damage-phase.hbs"}}
+  {{/if}}
+</div>

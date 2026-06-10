@@ -1,0 +1,402 @@
+/* ============================================================
+   Battlecard — dialog
+   ============================================================ */
+
+.battlecard-dialog .window-content {
+  padding: 0;
+}
+
+.bc-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+}
+
+/* --- Header: actor + item --- */
+
+.bc-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bc-actor-img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border: 1px solid var(--color-border-dark, #444);
+  border-radius: 6px;
+  flex: 0 0 auto;
+}
+
+.bc-header-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.bc-actor-name {
+  font-weight: bold;
+  font-size: var(--font-size-14, 14px);
+}
+
+.bc-item-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bc-item-img {
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 3px;
+}
+
+.bc-item-name {
+  font-style: italic;
+  opacity: 0.9;
+}
+
+.bc-attack-counter {
+  font-size: var(--font-size-11, 11px);
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* --- Phase container --- */
+
+.bc-phase {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* --- Target panel --- */
+
+.bc-target-panel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border-light-tertiary, #666);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.1);
+  min-height: 48px;
+}
+
+.bc-target-img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border: 1px solid #e24b4a;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.bc-target-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.bc-label {
+  font-size: var(--font-size-11, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.bc-target-name {
+  font-weight: bold;
+}
+
+.bc-untargeted {
+  justify-content: center;
+  opacity: 0.75;
+  font-style: italic;
+}
+
+.bc-target-placeholder {
+  font-size: 20px;
+  opacity: 0.5;
+}
+
+.bc-notice {
+  margin: 0;
+  font-size: var(--font-size-12, 12px);
+  color: #c9a227;
+}
+
+/* --- Advantage toggle --- */
+
+.bc-adv-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.bc-adv-toggle button {
+  margin: 0;
+  border-radius: 0;
+  font-size: var(--font-size-12, 12px);
+  line-height: 1.6;
+  opacity: 0.75;
+}
+
+.bc-adv-toggle button.active {
+  opacity: 1;
+  font-weight: bold;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.45);
+}
+
+.bc-adv-toggle button.bc-adv.active { background: rgba(46, 125, 50, 0.45); }
+.bc-adv-toggle button.bc-dis.active { background: rgba(183, 28, 28, 0.45); }
+.bc-adv-toggle button.bc-normal.active { background: rgba(255, 255, 255, 0.12); }
+
+/* --- Live formula --- */
+
+.bc-formula {
+  text-align: center;
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-16, 16px);
+  padding: 5px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.18);
+  letter-spacing: 0.03em;
+}
+
+/* --- Fields --- */
+
+.bc-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bc-field label {
+  flex: 0 0 40%;
+  font-size: var(--font-size-12, 12px);
+}
+
+.bc-field input,
+.bc-field select {
+  flex: 1;
+}
+
+.bc-manual-field {
+  border: 1px dashed var(--color-border-light-tertiary, #777);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+.bc-manual-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.bc-manual-row input { max-width: 70px; }
+
+.bc-manual-total {
+  font-family: var(--font-mono, monospace);
+  font-weight: bold;
+  font-size: var(--font-size-14, 14px);
+}
+
+/* --- Buttons --- */
+
+.bc-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.bc-button-row {
+  display: flex;
+  gap: 6px;
+}
+
+.bc-button-row button { flex: 1; }
+
+.bc-button-row .bc-manual-toggle {
+  flex: 0 0 36px;
+}
+
+.bc-manual-toggle.active {
+  background: rgba(201, 162, 39, 0.35);
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.4);
+}
+
+button.bc-primary {
+  font-weight: bold;
+  background: rgba(46, 80, 144, 0.55);
+}
+
+button.bc-suggested {
+  outline: 2px solid #c9a227;
+  outline-offset: -2px;
+  font-weight: bold;
+}
+
+button.bc-suggested.bc-crit { outline-color: #2e7d32; }
+button.bc-suggested.bc-fumble { outline-color: #b71c1c; }
+
+/* --- Phase 2: pinned attack result --- */
+
+.bc-attack-result,
+.bc-damage-result {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 7px;
+  padding: 8px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  flex-wrap: wrap;
+}
+
+.bc-result-total {
+  font-size: 26px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.bc-result-label { opacity: 0.8; }
+
+.bc-result-target { opacity: 0.8; font-style: italic; }
+
+.bc-attack-result.bc-crit .bc-result-total { color: #58d68d; }
+.bc-attack-result.bc-fumble .bc-result-total { color: #ec7063; }
+
+.bc-flag {
+  font-size: var(--font-size-11, 11px);
+  font-weight: bold;
+  padding: 1px 7px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bc-flag-crit { background: rgba(46, 125, 50, 0.5); color: #d5f5e3; }
+.bc-flag-fumble { background: rgba(183, 28, 28, 0.5); color: #fadbd8; }
+
+.bc-miss-label,
+.bc-card-miss {
+  font-weight: bold;
+  font-size: var(--font-size-16, 16px);
+  letter-spacing: 0.12em;
+  color: #ec7063;
+  text-transform: uppercase;
+}
+
+.bc-damage-buttons { flex-wrap: wrap; }
+
+/* --- Pick mode cursor --- */
+
+body.battlecard-picking #board {
+  cursor: crosshair !important;
+}
+
+/* ============================================================
+   Battlecard — chat card
+   ============================================================ */
+
+.battlecard-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bc-card-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border-bottom: 1px solid var(--color-border-light-tertiary, #666);
+  padding-bottom: 5px;
+}
+
+.bc-card-item-img {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 4px;
+  flex: 0 0 auto;
+}
+
+.bc-card-title {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.bc-card-actor { font-weight: bold; }
+
+.bc-card-item { font-style: italic; font-size: var(--font-size-12, 12px); opacity: 0.85; }
+
+.bc-card-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 4px 0;
+}
+
+.bc-card-block + .bc-card-block {
+  border-top: 1px dashed var(--color-border-light-tertiary, #666);
+}
+
+.bc-card-attack-line,
+.bc-card-damage-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bc-card-attack-label,
+.bc-card-damage-label {
+  font-size: var(--font-size-11, 11px);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.bc-card-total {
+  font-weight: bold;
+  font-size: var(--font-size-16, 16px);
+}
+
+.bc-card-total.bc-crit { color: #2e7d32; }
+.bc-card-total.bc-fumble { color: #b71c1c; }
+
+.bc-card-damage-type { font-size: var(--font-size-12, 12px); opacity: 0.85; }
+
+.bc-manual-tag { opacity: 0.7; font-size: var(--font-size-11, 11px); }
+
+.bc-card-miss { padding: 2px 0; }
+
+.bc-card-roll .dice-roll { margin: 0; }
+
+.bc-card-footer {
+  display: flex;
+  gap: 6px;
+  border-top: 1px solid var(--color-border-light-tertiary, #666);
+  padding-top: 5px;
+}
+
+.bc-card-footer:empty,
+.bc-card-footer:not(:has(button)) {
+  display: none;
+}
+
+.bc-card-footer button {
+  flex: 1;
+  font-size: var(--font-size-12, 12px);
+  line-height: 1.6;
+}

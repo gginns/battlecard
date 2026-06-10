@@ -1,0 +1,74 @@
+<div class="battlecard-card">
+
+  <header class="bc-card-header">
+    {{#if itemImg}}<img class="bc-card-item-img" src="{{itemImg}}" alt=""/>{{/if}}
+    <div class="bc-card-title">
+      <span class="bc-card-actor">{{actorName}}</span>
+      <span class="bc-card-item">{{itemName}}</span>
+    </div>
+  </header>
+
+  {{#each attacks}}
+    <div class="bc-card-block">
+      <div class="bc-card-attack-line">
+        <span class="bc-card-attack-label">
+          {{#if ../multiple}}
+            {{localize "BATTLECARD.Card.AttackN" number=this.num}}
+          {{else}}
+            {{localize "BATTLECARD.Card.Attack"}}
+          {{/if}}
+        </span>
+        {{#if this.target}}
+          <span class="bc-card-target">{{localize "BATTLECARD.Card.Versus"}} <strong>{{this.target.name}}</strong></span>
+        {{/if}}
+        <span class="bc-card-total {{#if this.attack.isCrit}}bc-crit{{/if}} {{#if this.attack.isFumble}}bc-fumble{{/if}}">
+          {{this.attack.total}}
+        </span>
+        {{#if this.attack.manual}}
+          <i class="fa-solid fa-hand bc-manual-tag" data-tooltip="{{localize "BATTLECARD.ManualEntry"}}"></i>
+        {{/if}}
+        {{#if this.attack.isCrit}}<span class="bc-flag bc-flag-crit">{{localize "BATTLECARD.Dialog.NaturalTwenty"}}</span>{{/if}}
+        {{#if this.attack.isFumble}}<span class="bc-flag bc-flag-fumble">{{localize "BATTLECARD.Dialog.NaturalOne"}}</span>{{/if}}
+      </div>
+      {{#if this.attack.rollHTML}}
+        <div class="bc-card-roll">{{{this.attack.rollHTML}}}</div>
+      {{/if}}
+
+      {{#if this.damage}}
+        {{#if this.damage.miss}}
+          <div class="bc-card-miss">{{localize "BATTLECARD.Miss"}}</div>
+        {{else}}
+          <div class="bc-card-damage-line">
+            <span class="bc-card-damage-label">
+              {{#if this.damage.critical}}
+                {{localize "BATTLECARD.Card.CriticalDamage"}}
+              {{else}}
+                {{localize "BATTLECARD.Card.Damage"}}
+              {{/if}}
+            </span>
+            <span class="bc-card-total">{{this.damage.total}}</span>
+            <span class="bc-card-damage-type">{{this.damage.typeLabel}}</span>
+            {{#if this.damage.manual}}
+              <i class="fa-solid fa-hand bc-manual-tag" data-tooltip="{{localize "BATTLECARD.ManualEntry"}}"></i>
+            {{/if}}
+          </div>
+          {{#if this.damage.rollHTML}}
+            <div class="bc-card-roll">{{{this.damage.rollHTML}}}</div>
+          {{/if}}
+        {{/if}}
+      {{/if}}
+    </div>
+  {{/each}}
+
+  <footer class="bc-card-footer">
+    <button type="button" data-bc-action="reveal">
+      <i class="fa-solid fa-eye"></i> {{localize "BATTLECARD.Card.RevealToAll"}}
+    </button>
+    {{#unless complete}}
+      <button type="button" data-bc-action="resume">
+        <i class="fa-solid fa-play"></i> {{localize "BATTLECARD.Card.Resume"}}
+      </button>
+    {{/unless}}
+  </footer>
+
+</div>
