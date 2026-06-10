@@ -36,3 +36,4 @@ One card in chat tells the whole story.
 - One target per attack roll; "Attack Again" covers multiattacks.
 - Spell attacks are cast at base level (the system's configuration dialog, where upcasting lives, is suppressed by design — hold Shift to bypass Battlecard when you want to upcast).
 - Bonus dice from features (Hex, Hunter's Mark, Sneak Attack) are typed into the situational bonus field manually.
+- Weapon options normally chosen in the system dialog (versatile one-/two-handed grip, thrown, ammunition choice) use your last-used/default selection. Hold Shift to bypass Battlecard when you need to change them.

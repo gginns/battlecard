@@ -2,7 +2,7 @@
   "id": "battlecard",
   "title": "Battlecard",
   "description": "A single two-phase attack dialog and one evolving chat card per attack sequence for dnd5e. Automates choreography, never rules — hit/miss adjudication stays human.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "authors": [
     {
       "name": "gginns"
@@ -10,7 +10,7 @@
   ],
   "url": "https://github.com/gginns/battlecard",
   "manifest": "https://github.com/gginns/battlecard/releases/latest/download/module.json",
-  "download": "https://github.com/gginns/battlecard/releases/download/v0.1.0/battlecard.zip",
+  "download": "https://github.com/gginns/battlecard/releases/download/v0.1.1/battlecard.zip",
   "compatibility": {
     "minimum": "13",
     "verified": "14"

@@ -54,9 +54,10 @@ export function registerChatCardHooks() {
 }
 
 /**
- * Card content is shared across clients, so per-user affordances (the GM-only
- * "Reveal to all" button, the owner/GM Resume button) are trimmed and wired
- * here at render time on each client.
+ * Per-user affordances (the GM-only "Reveal to all" button, the owner/GM
+ * Resume button) are injected at render time on each client — never stored
+ * in message content, so cards degrade to clean static text if the module
+ * is disabled (§11).
  */
 function onRenderChatMessage(message, html) {
   let state;
@@ -67,18 +68,34 @@ function onRenderChatMessage(message, html) {
   }
   if (!state) return;
   html.classList?.add("battlecard-message");
+  const card = html.querySelector(".battlecard-card");
+  if (!card) return;
 
-  const reveal = html.querySelector('[data-bc-action="reveal"]');
-  if (reveal) {
-    const hidden = (message.whisper?.length ?? 0) > 0 || message.blind;
-    if (!game.user.isGM || !hidden) reveal.remove();
-    else reveal.addEventListener("click", () => revealToAll(message));
+  const buttons = [];
+
+  const hidden = (message.whisper?.length ?? 0) > 0 || message.blind;
+  if (game.user.isGM && hidden) {
+    buttons.push(makeButton("fa-solid fa-eye", "BATTLECARD.Card.RevealToAll", () => revealToAll(message)));
   }
 
-  // Resume (M2): visible only to the sequence owner and GM, on incomplete
-  // sequences. Hidden entirely for now; the state plumbing already exists.
-  const resume = html.querySelector('[data-bc-action="resume"]');
-  if (resume) resume.remove();
+  // Resume (M2): owner/GM button on incomplete sequences will be added here;
+  // the full sequence state is already stored in flags.
+
+  if (!buttons.length) return;
+  const footer = document.createElement("footer");
+  footer.className = "bc-card-footer";
+  footer.append(...buttons);
+  card.append(footer);
+}
+
+function makeButton(iconClass, labelKey, onClick) {
+  const button = document.createElement("button");
+  button.type = "button";
+  const icon = document.createElement("i");
+  icon.className = iconClass;
+  button.append(icon, ` ${game.i18n.localize(labelKey)}`);
+  button.addEventListener("click", onClick);
+  return button;
 }
 
 /** GM one-click republish of a hidden card to everyone. */

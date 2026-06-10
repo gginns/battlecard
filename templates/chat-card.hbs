@@ -60,15 +60,8 @@
     </div>
   {{/each}}
 
-  <footer class="bc-card-footer">
-    <button type="button" data-bc-action="reveal">
-      <i class="fa-solid fa-eye"></i> {{localize "BATTLECARD.Card.RevealToAll"}}
-    </button>
-    {{#unless complete}}
-      <button type="button" data-bc-action="resume">
-        <i class="fa-solid fa-play"></i> {{localize "BATTLECARD.Card.Resume"}}
-      </button>
-    {{/unless}}
-  </footer>
+  {{!-- Per-user buttons (Reveal, Resume) are injected at render time by
+        chat-card.js, never stored in content: if the module is disabled the
+        cards degrade to clean static text with no dead buttons (§11). --}}
 
 </div>

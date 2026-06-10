@@ -37,6 +37,19 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
   #cancelPick = null;    // active pick-mode canceller
   #busy = false;         // roll in flight; ignore re-clicks
 
+  /**
+   * Live target panel: retargeting natively (T key etc.) while in the attack
+   * phase refreshes the panel. Pick mode has its own handler, so skip then.
+   */
+  #onUserRetarget = user => {
+    if (user !== game.user || this.phase !== "attack" || this.#cancelPick) return;
+    const entry = this.current;
+    if (!entry || entry.attack) return;
+    entry.target = snapshotToken(firstTarget());
+    entry.multipleTargets = targetCount() > 1;
+    if (this.rendered) this.render();
+  };
+
   static DEFAULT_OPTIONS = {
     id: "battlecard-dialog",
     classes: ["battlecard-dialog"],
@@ -97,7 +110,7 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     }
     const dialog = new BattlecardDialog(options);
     BattlecardDialog.current = dialog;
-    dialog.render(true);
+    dialog.render({ force: true });
     return dialog;
   }
 
@@ -210,6 +223,11 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       manualDamageValue: entry.manualDamageValue,
       damage: entry.damage
     };
+  }
+
+  _onFirstRender(context, options) {
+    super._onFirstRender?.(context, options);
+    Hooks.on("targetToken", this.#onUserRetarget);
   }
 
   _onRender(context, options) {
@@ -361,10 +379,18 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       }
     };
 
+    // advantage/disadvantage also go in the direct config — the officially
+    // merged path (AttackActivity#rollAttack mergeObject; D20Roll reads
+    // config.advantage when no keyboard event is present). The hook below
+    // additionally injects the situational bonus parts.
+    const processConfig = {};
+    if (advMode === 1) processConfig.advantage = true;
+    else if (advMode === -1) processConfig.disadvantage = true;
+
     Hooks.on("dnd5e.preRollAttack", mutate);
     let rolls;
     try {
-      rolls = await activity.rollAttack({}, { configure: false }, { create: false });
+      rolls = await activity.rollAttack(processConfig, { configure: false }, { create: false });
     } catch (e) {
       warn("System attack roll failed", e);
       ui.notifications.error(game.i18n.localize("BATTLECARD.Notifications.RollFailed"));
@@ -632,6 +658,7 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
 
   _onClose(options) {
     super._onClose?.(options);
+    Hooks.off("targetToken", this.#onUserRetarget);
     this.#cancelPick?.();
     this.#cancelPick = null;
     try {

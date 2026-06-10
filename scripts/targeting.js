@@ -72,6 +72,27 @@ export function startTargetPick({ onPick, onCancel }) {
 /** Clear the user's targets after a sequence ends, if the setting is on. */
 export function autoClearTargets() {
   if (!game.settings.get(MODULE_ID, "autoClearTargets")) return;
-  game.user.updateTokenTargets([]);
-  game.user.broadcastActivity?.({ targets: [] });
+  clearAllTargets();
+}
+
+/**
+ * Clear all of the local user's targets across Foundry generations:
+ * v14 replaced User#updateTokenTargets (now internal) with
+ * TokensLayer#setTargets (foundryvtt#10613); v13 still has the User method.
+ */
+export function clearAllTargets() {
+  try {
+    if (typeof canvas.tokens?.setTargets === "function") {
+      canvas.tokens.setTargets([]);
+    } else if (typeof game.user.updateTokenTargets === "function") {
+      game.user.updateTokenTargets([]);
+      game.user.broadcastActivity?.({ targets: [] });
+    } else {
+      for (const token of [...(game.user.targets ?? [])]) {
+        token.setTarget(false, { user: game.user, releaseOthers: false });
+      }
+    }
+  } catch (e) {
+    console.warn(`${MODULE_ID} | Failed to clear targets`, e);
+  }
 }
