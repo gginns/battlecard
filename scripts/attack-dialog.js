@@ -1,9 +1,10 @@
 import {
-  MODULE_ID, advModes, dnd5eApi, firstTarget, getRollClass, isNumericBonus, log,
-  normalizeBonus, parseToHit, rollModeOptions, showDice, snapshotToken, targetCount, warn
+  MODULE_ID, advModes, dnd5eApi, firstTarget, fromUuidCompat, fromUuidSyncCompat, getRollClass,
+  isNumericBonus, log, normalizeBonus, parseToHit, rollModeOptions, showDice, snapshotToken,
+  targetCount, warn
 } from "./util.js";
 import { initialRollMode } from "./settings.js";
-import { createSequenceMessage, updateSequenceMessage } from "./chat-card.js";
+import { createSequenceMessage, refreshMessageDisplay, updateSequenceMessage } from "./chat-card.js";
 import { autoClearTargets, startTargetPick } from "./targeting.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -21,12 +22,29 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
   constructor(options = {}) {
     super(options);
     this.activity = options.activity;
-    this.phase = "attack";
-    this.rollMode = initialRollMode();
     this.manualAttack = false;
     this.manualDamage = false;
-    this.sequence = { attacks: [] };
-    this.#pushNewAttack();
+    const resume = options.resume;
+    if (resume) {
+      // Reconstruct an abandoned sequence from the card's flags (§7).
+      const state = resume.state;
+      this.phase = state.phase ?? "attack";
+      this.rollMode = state.rollMode ?? initialRollMode();
+      this.whisperIds = new Set(state.whisperIds ?? []);
+      this.ownerUserId = state.ownerUserId ?? game.user.id;
+      this.sequence = { attacks: foundry.utils.deepClone(state.attacks ?? []) };
+      if (!this.sequence.attacks.length) this.#pushNewAttack();
+      // Guard against odd states: damage/post phases need an attack result.
+      if (this.phase !== "attack" && !this.current?.attack) this.phase = "attack";
+      this.#message = resume.message;
+    } else {
+      this.phase = "attack";
+      this.rollMode = initialRollMode();
+      this.whisperIds = new Set();
+      this.ownerUserId = game.user.id;
+      this.sequence = { attacks: [] };
+      this.#pushNewAttack();
+    }
   }
 
   /** @type {BattlecardDialog|null} The one open dialog on this client. */
@@ -94,16 +112,20 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
 
   get title() { return this.item?.name ?? game.i18n.localize("BATTLECARD.Dialog.Title"); }
 
+  /** Id of this sequence's chat card, if one exists yet. */
+  get messageId() { return this.#message?.id ?? null; }
+
   /* -------------------------------------------- */
   /*  Opening                                     */
   /* -------------------------------------------- */
 
   /** Open the dialog for an attack activity, replacing any prior instance. */
-  static async open(activity) {
+  static async open(activity, { resume = null } = {}) {
     if (BattlecardDialog.current) {
       try { await BattlecardDialog.current.close(); } catch (e) { /* already closed */ }
     }
     const options = { activity };
+    if (resume) options.resume = resume;
     const pos = game.settings.get(MODULE_ID, "dialogPosition");
     if (Number.isFinite(pos?.left) && Number.isFinite(pos?.top)) {
       options.position = { left: pos.left, top: pos.top };
@@ -111,7 +133,29 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     const dialog = new BattlecardDialog(options);
     BattlecardDialog.current = dialog;
     dialog.render({ force: true });
+    // Hide the card's Resume button on this client while the dialog is open.
+    if (resume?.message) refreshMessageDisplay(resume.message);
     return dialog;
+  }
+
+  /**
+   * Resume an abandoned sequence from its chat card (§7). Reopens the dialog
+   * at the abandoned phase with full context rebuilt from the card's flags.
+   */
+  static async resume(message) {
+    const state = message.getFlag(MODULE_ID, "state");
+    if (!state || state.complete) return null;
+    if (game.user.id !== state.ownerUserId && !game.user.isGM) return null;
+    let activity = null;
+    try {
+      activity = await fromUuidCompat(state.activityUuid);
+    } catch (e) { /* item gone */ }
+    if (typeof activity?.rollAttack !== "function") {
+      // Attacker lost the item mid-sequence (§11): fail gracefully.
+      ui.notifications.warn(game.i18n.localize("BATTLECARD.Notifications.ResumeFailed"));
+      return null;
+    }
+    return this.open(activity, { resume: { message, state } });
   }
 
   /* -------------------------------------------- */
@@ -137,7 +181,8 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
   #buildState() {
     return {
       version: 1,
-      ownerUserId: game.user.id,
+      ownerUserId: this.ownerUserId,
+      whisperIds: [...this.whisperIds],
       itemUuid: this.item?.uuid ?? null,
       activityUuid: this.activity?.uuid ?? null,
       attackerTokenUuid: this.token?.document?.uuid ?? null,
@@ -193,6 +238,7 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       return {
         ...base,
         target: entry.target,
+        targetMissing: this.#targetMissing(entry),
         multipleTargets: entry.multipleTargets,
         isAdv: entry.advMode === 1,
         isNormal: entry.advMode === 0,
@@ -200,6 +246,8 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
         formula: this.#attackFormulaDisplay(),
         situational: entry.situational,
         rollModes: rollModeOptions(this.rollMode),
+        showWhisperList: this.rollMode === "whisper",
+        whisperTargets: this.#whisperTargets(),
         manual: this.manualAttack,
         manualValue: entry.manualValue,
         manualTotal: this.#manualAttackTotalDisplay()
@@ -243,7 +291,14 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
 
     el.querySelector('[name="rollMode"]')?.addEventListener("change", ev => {
       this.rollMode = ev.target.value;
+      this.render(); // show/hide the whisper recipient list
     });
+
+    el.querySelectorAll("[data-whisper-id]").forEach(box => box.addEventListener("change", ev => {
+      const id = ev.target.dataset.whisperId;
+      if (ev.target.checked) this.whisperIds.add(id);
+      else this.whisperIds.delete(id);
+    }));
 
     el.querySelector('[name="manualValue"]')?.addEventListener("input", ev => {
       this.current.manualValue = ev.target.value;
@@ -333,6 +388,10 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     if (this.#busy) return;
     this.#busy = true;
     try {
+      if (this.rollMode === "whisper" && !this.whisperIds.size) {
+        ui.notifications.warn(game.i18n.localize("BATTLECARD.Notifications.WhisperNoTargets"));
+        return;
+      }
       const entry = this.current;
       const attack = this.manualAttack
         ? await this.#manualAttackResult(entry)
@@ -403,7 +462,7 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     const roll = rolls[0];
     const d20 = roll.dice?.find(d => d.faces === 20);
     const face = d20?.results?.find(r => r.active)?.result ?? null;
-    await showDice(roll, this.rollMode);
+    await showDice(roll, this.rollMode, [...this.whisperIds]);
     return {
       total: roll.total,
       d20: face,
@@ -510,7 +569,7 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     }
     if (!rolls?.length) return null;
 
-    for (const r of rolls) await showDice(r, this.rollMode);
+    for (const r of rolls) await showDice(r, this.rollMode, [...this.whisperIds]);
     const total = rolls.reduce((t, r) => t + (r.total ?? 0), 0);
     const typeLabel = this.#damageTypesLabel(rolls);
     const html = (await Promise.all(rolls.map(r => this.#renderRoll(r)))).join("");
@@ -568,6 +627,31 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       return await roll.render();
     } catch (e) {
       return null;
+    }
+  }
+
+  /* -------------------------------------------- */
+  /*  Whisper & target helpers                    */
+  /* -------------------------------------------- */
+
+  /** Selectable whisper recipients: every other user, inactive ones dimmed. */
+  #whisperTargets() {
+    return game.users.contents
+      .filter(u => !u.isSelf)
+      .map(u => ({ id: u.id, name: u.name, active: u.active, checked: this.whisperIds.has(u.id) }));
+  }
+
+  /**
+   * Target deleted or off-scene mid-sequence (§11): warn but let the
+   * sequence proceed — rolls never depend on the target.
+   */
+  #targetMissing(entry) {
+    const uuid = entry?.target?.uuid;
+    if (!uuid) return false;
+    try {
+      return !fromUuidSyncCompat(uuid)?.object;
+    } catch (e) {
+      return true;
     }
   }
 
@@ -668,10 +752,11 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       }
     } catch (e) { /* settings not ready */ }
     if (BattlecardDialog.current === this) BattlecardDialog.current = null;
-    // Closing mid-sequence does NOT cancel the sequence: the card keeps its
-    // state in flags. (Resume button lands in M2.)
+    // Closing mid-sequence does NOT cancel the sequence (§7): the card keeps
+    // its state in flags and re-renders locally to surface its Resume button.
     if (!this.#finished && this.#message) {
-      log(`Sequence on message ${this.#message.id} left open (resumable state saved).`);
+      refreshMessageDisplay(this.#message);
+      log(`Sequence on message ${this.#message.id} abandoned (resumable from card).`);
     }
   }
 }

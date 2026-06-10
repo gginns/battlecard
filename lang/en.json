@@ -28,6 +28,9 @@
   "BATTLECARD.Dialog.Miss": "Miss",
   "BATTLECARD.Dialog.Done": "Done",
   "BATTLECARD.Dialog.AttackAgain": "Attack Again",
+  "BATTLECARD.Dialog.WhisperOption": "Whisper to specific players…",
+  "BATTLECARD.Dialog.WhisperRecipients": "Recipients",
+  "BATTLECARD.Dialog.TargetMissing": "Target is no longer on the scene — you can still proceed.",
 
   "BATTLECARD.Card.Attack": "Attack",
   "BATTLECARD.Card.AttackN": "Attack {number}",
@@ -43,6 +46,8 @@
   "BATTLECARD.Notifications.RollFailed": "The roll could not be completed. See console for details.",
   "BATTLECARD.Notifications.CardUpdateFailed": "Could not update the attack card. See console for details.",
   "BATTLECARD.Notifications.NoGMForUpdate": "No active GM available to update the attack card.",
+  "BATTLECARD.Notifications.ResumeFailed": "Cannot resume: the item or its attack activity no longer exists.",
+  "BATTLECARD.Notifications.WhisperNoTargets": "Select at least one whisper recipient.",
 
   "BATTLECARD.Settings.AutoClearTargets.Name": "Auto-clear targets after sequence",
   "BATTLECARD.Settings.AutoClearTargets.Hint": "Clear your targets automatically when an attack sequence ends with Done. Attack Again never clears.",

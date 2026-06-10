@@ -298,6 +298,35 @@ button.bc-suggested.bc-fumble { outline-color: #b71c1c; }
 
 .bc-damage-buttons { flex-wrap: wrap; }
 
+/* --- Whisper recipient list --- */
+
+.bc-whisper-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-height: 130px;
+  overflow-y: auto;
+  border: 1px dashed var(--color-border-light-tertiary, #777);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+.bc-whisper-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-12, 12px);
+}
+
+.bc-whisper-option input[type="checkbox"] {
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.bc-whisper-option.bc-inactive {
+  opacity: 0.55;
+}
+
 /* --- Pick mode cursor --- */
 
 body.battlecard-picking #board {

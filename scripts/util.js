@@ -34,6 +34,16 @@ export function getRollClass() {
   return foundry.dice?.Roll ?? globalThis.Roll;
 }
 
+export function fromUuidCompat(uuid) {
+  const fn = foundry.utils?.fromUuid ?? globalThis.fromUuid;
+  return fn(uuid);
+}
+
+export function fromUuidSyncCompat(uuid) {
+  const fn = foundry.utils?.fromUuidSync ?? globalThis.fromUuidSync;
+  return fn(uuid);
+}
+
 /** The dnd5e system API object. */
 export function dnd5eApi() {
   return game.dnd5e ?? globalThis.dnd5e ?? game.system?.api ?? null;
@@ -104,15 +114,22 @@ export function parseToHit(activity) {
 /* -------------------------------------------- */
 
 /**
- * Options for the roll-mode dropdown. Handles both the v12 (string label) and
- * v13+ ({label, icon}) shapes of CONFIG.Dice.rollModes.
+ * Options for the roll-mode dropdown: the core modes (handling both the v12
+ * string-label and v13+ {label, icon} shapes of CONFIG.Dice.rollModes) plus
+ * Battlecard's "Whisper to specific players..." mode (§4).
  */
 export function rollModeOptions(selected) {
-  return Object.entries(CONFIG.Dice.rollModes).map(([value, cfg]) => ({
+  const options = Object.entries(CONFIG.Dice.rollModes).map(([value, cfg]) => ({
     value,
     label: game.i18n.localize(typeof cfg === "string" ? cfg : cfg.label),
     selected: value === selected
   }));
+  options.push({
+    value: "whisper",
+    label: game.i18n.localize("BATTLECARD.Dialog.WhisperOption"),
+    selected: selected === "whisper"
+  });
+  return options;
 }
 
 /** Whisper recipient user ids for Dice So Nice, mirroring a roll mode. */
@@ -125,10 +142,12 @@ export function dsnWhisperIds(rollMode) {
 }
 
 /** Show 3D dice for a roll if Dice So Nice is active. Never throws. */
-export async function showDice(roll, rollMode) {
+export async function showDice(roll, rollMode, whisperIds = null) {
   if (!game.dice3d) return;
   try {
-    await game.dice3d.showForRoll(roll, game.user, true, dsnWhisperIds(rollMode), rollMode === "blindroll" && !game.user.isGM);
+    let whisper = dsnWhisperIds(rollMode);
+    if (rollMode === "whisper") whisper = [...new Set([...(whisperIds ?? []), game.user.id])];
+    await game.dice3d.showForRoll(roll, game.user, true, whisper, rollMode === "blindroll" && !game.user.isGM);
   } catch (e) {
     warn("Dice So Nice display failed", e);
   }

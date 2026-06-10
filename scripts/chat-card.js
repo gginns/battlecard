@@ -1,5 +1,6 @@
 import { MODULE_ID, renderTemplateCompat, warn } from "./util.js";
 import { requestMessageUpdate } from "./sockets.js";
+import { BattlecardDialog } from "./attack-dialog.js";
 
 const CARD_TEMPLATE = `modules/${MODULE_ID}/templates/chat-card.hbs`;
 
@@ -32,8 +33,21 @@ export async function createSequenceMessage(state, { speaker }) {
     speaker,
     flags: { [MODULE_ID]: { state } }
   };
-  ChatMessage.implementation.applyRollMode(data, state.rollMode);
+  if (state.rollMode === "whisper") {
+    // Custom recipient list; the owner is always included so they can see
+    // their own card.
+    data.whisper = [...new Set([...(state.whisperIds ?? []), state.ownerUserId].filter(Boolean))];
+  } else {
+    ChatMessage.implementation.applyRollMode(data, state.rollMode);
+  }
   return ChatMessage.implementation.create(data);
+}
+
+/** Re-render one message's HTML locally (e.g. to toggle its Resume button). */
+export function refreshMessageDisplay(message) {
+  try {
+    ui.chat?.updateMessage?.(message);
+  } catch (e) { /* chat log not ready */ }
 }
 
 /** Re-render and update the card in place (locally or via the GM socket). */
@@ -78,8 +92,13 @@ function onRenderChatMessage(message, html) {
     buttons.push(makeButton("fa-solid fa-eye", "BATTLECARD.Card.RevealToAll", () => revealToAll(message)));
   }
 
-  // Resume (M2): owner/GM button on incomplete sequences will be added here;
-  // the full sequence state is already stored in flags.
+  // Resume (§7): sequence owner and GM only, on incomplete sequences, unless
+  // this client's dialog is already showing this very sequence.
+  const mayResume = game.user.isGM || game.user.id === state.ownerUserId;
+  const dialogOpenHere = BattlecardDialog.current?.messageId === message.id;
+  if (!state.complete && mayResume && !dialogOpenHere) {
+    buttons.push(makeButton("fa-solid fa-play", "BATTLECARD.Card.Resume", () => BattlecardDialog.resume(message)));
+  }
 
   if (!buttons.length) return;
   const footer = document.createElement("footer");

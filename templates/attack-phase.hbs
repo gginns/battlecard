@@ -15,6 +15,9 @@
   {{#if multipleTargets}}
     <p class="bc-notice"><i class="fa-solid fa-triangle-exclamation"></i> {{localize "BATTLECARD.Dialog.MultipleTargets"}}</p>
   {{/if}}
+  {{#if targetMissing}}
+    <p class="bc-notice"><i class="fa-solid fa-ghost"></i> {{localize "BATTLECARD.Dialog.TargetMissing"}}</p>
+  {{/if}}
 
   <div class="bc-adv-toggle" role="group">
     <button type="button" data-action="setAdvantage" data-adv="1" class="bc-adv {{#if isAdv}}active{{/if}}">
@@ -43,6 +46,18 @@
       {{/each}}
     </select>
   </div>
+
+  {{#if showWhisperList}}
+    <div class="bc-whisper-list">
+      <span class="bc-label">{{localize "BATTLECARD.Dialog.WhisperRecipients"}}</span>
+      {{#each whisperTargets}}
+        <label class="bc-whisper-option {{#unless this.active}}bc-inactive{{/unless}}">
+          <input type="checkbox" data-whisper-id="{{this.id}}" {{#if this.checked}}checked{{/if}}/>
+          <span>{{this.name}}</span>
+        </label>
+      {{/each}}
+    </div>
+  {{/if}}
 
   {{#if manual}}
     <div class="bc-field bc-manual-field">
