@@ -29,7 +29,7 @@ One card in chat tells the whole story.
 
 - **M1 (done):** interception, two-phase dialog, evolving chat card, manual dice entry, roll modes, Attack Again, auto-clear targets.
 - **M2 (done):** Resume button on abandoned cards, cross-client socket updates, "Whisper to specific players" roll mode, target-lost warning.
-- **M3 (current):** pulsing target reticle (double-ripple), current-target HUD chip.
+- **M3 (done):** pulsing target reticle (double-ripple). (A current-target HUD chip shipped in 0.3.0 and was removed in 0.3.1 by design decision.)
 
 ## Known v1 limitations
 

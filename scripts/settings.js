@@ -1,6 +1,6 @@
 import { MODULE_ID } from "./util.js";
 
-/** Re-render the reticle and HUD chip when their settings change. */
+/** Re-render the target reticle when its settings change. */
 const refreshTargetUI = () => Hooks.callAll(`${MODULE_ID}.refreshTargetUI`);
 
 export function registerSettings() {
@@ -76,16 +76,6 @@ export function registerSettings() {
       fast: "BATTLECARD.Settings.ReticleSpeed.Fast"
     },
     default: "medium",
-    onChange: refreshTargetUI
-  });
-
-  game.settings.register(MODULE_ID, "hudChipEnabled", {
-    name: "BATTLECARD.Settings.HudChipEnabled.Name",
-    hint: "BATTLECARD.Settings.HudChipEnabled.Hint",
-    scope: "client",
-    config: true,
-    type: Boolean,
-    default: true,
     onChange: refreshTargetUI
   });
 

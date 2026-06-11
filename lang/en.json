@@ -40,9 +40,6 @@
   "BATTLECARD.Card.RevealToAll": "Reveal to all",
   "BATTLECARD.Card.Resume": "Resume",
 
-  "BATTLECARD.Chip.Targeting": "Targeting",
-  "BATTLECARD.Chip.Clear": "Clear target",
-
   "BATTLECARD.Notifications.PickTarget": "Click a token to target it. Press Escape to cancel.",
   "BATTLECARD.Notifications.InvalidD20": "Enter the raw d20 face value (1–20).",
   "BATTLECARD.Notifications.InvalidDamage": "Enter a valid damage total.",
@@ -71,7 +68,5 @@
   "BATTLECARD.Settings.ReticleSpeed.Hint": "Speed and intensity of the pulse animation.",
   "BATTLECARD.Settings.ReticleSpeed.Slow": "Slow",
   "BATTLECARD.Settings.ReticleSpeed.Medium": "Medium",
-  "BATTLECARD.Settings.ReticleSpeed.Fast": "Fast",
-  "BATTLECARD.Settings.HudChipEnabled.Name": "Target HUD chip enabled",
-  "BATTLECARD.Settings.HudChipEnabled.Hint": "Show a small persistent chip with your current target near the top of the screen."
+  "BATTLECARD.Settings.ReticleSpeed.Fast": "Fast"
 }
