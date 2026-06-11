@@ -3,6 +3,8 @@ import { registerSettings } from "./settings.js";
 import { registerSocket } from "./sockets.js";
 import { registerChatCardHooks } from "./chat-card.js";
 import { BattlecardDialog } from "./attack-dialog.js";
+import { registerReticle } from "./reticle.js";
+import { registerHudChip } from "./hud-chip.js";
 
 /**
  * Trigger & interception (§3).
@@ -20,7 +22,8 @@ Hooks.once("init", () => {
     `modules/${MODULE_ID}/templates/dialog.hbs`,
     `modules/${MODULE_ID}/templates/attack-phase.hbs`,
     `modules/${MODULE_ID}/templates/damage-phase.hbs`,
-    `modules/${MODULE_ID}/templates/chat-card.hbs`
+    `modules/${MODULE_ID}/templates/chat-card.hbs`,
+    `modules/${MODULE_ID}/templates/hud-chip.hbs`
   ]);
   registerChatCardHooks();
   log("Initialized");
@@ -28,6 +31,8 @@ Hooks.once("init", () => {
 
 Hooks.once("ready", () => {
   registerSocket();
+  registerReticle();
+  registerHudChip();
 });
 
 Hooks.on("dnd5e.preUseActivity", (activity, usageConfig, dialogConfig, messageConfig) => {

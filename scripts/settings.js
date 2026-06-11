@@ -1,5 +1,8 @@
 import { MODULE_ID } from "./util.js";
 
+/** Re-render the reticle and HUD chip when their settings change. */
+const refreshTargetUI = () => Hooks.callAll(`${MODULE_ID}.refreshTargetUI`);
+
 export function registerSettings() {
   game.settings.register(MODULE_ID, "autoClearTargets", {
     name: "BATTLECARD.Settings.AutoClearTargets.Name",
@@ -47,7 +50,8 @@ export function registerSettings() {
     scope: "client",
     config: true,
     type: Boolean,
-    default: true
+    default: true,
+    onChange: refreshTargetUI
   });
 
   game.settings.register(MODULE_ID, "reticleColor", {
@@ -56,7 +60,8 @@ export function registerSettings() {
     scope: "client",
     config: true,
     type: String,
-    default: "#E24B4A"
+    default: "#E24B4A",
+    onChange: refreshTargetUI
   });
 
   game.settings.register(MODULE_ID, "reticleSpeed", {
@@ -70,7 +75,8 @@ export function registerSettings() {
       medium: "BATTLECARD.Settings.ReticleSpeed.Medium",
       fast: "BATTLECARD.Settings.ReticleSpeed.Fast"
     },
-    default: "medium"
+    default: "medium",
+    onChange: refreshTargetUI
   });
 
   game.settings.register(MODULE_ID, "hudChipEnabled", {
@@ -79,7 +85,8 @@ export function registerSettings() {
     scope: "client",
     config: true,
     type: Boolean,
-    default: true
+    default: true,
+    onChange: refreshTargetUI
   });
 
   // Hidden: remembered dialog position, persisted per client.

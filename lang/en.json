@@ -40,6 +40,9 @@
   "BATTLECARD.Card.RevealToAll": "Reveal to all",
   "BATTLECARD.Card.Resume": "Resume",
 
+  "BATTLECARD.Chip.Targeting": "Targeting",
+  "BATTLECARD.Chip.Clear": "Clear target",
+
   "BATTLECARD.Notifications.PickTarget": "Click a token to target it. Press Escape to cancel.",
   "BATTLECARD.Notifications.InvalidD20": "Enter the raw d20 face value (1–20).",
   "BATTLECARD.Notifications.InvalidDamage": "Enter a valid damage total.",

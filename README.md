@@ -28,8 +28,8 @@ One card in chat tells the whole story.
 ## Roadmap
 
 - **M1 (done):** interception, two-phase dialog, evolving chat card, manual dice entry, roll modes, Attack Again, auto-clear targets.
-- **M2 (current):** Resume button on abandoned cards, cross-client socket updates, "Whisper to specific players" roll mode, target-lost warning.
-- **M3:** pulsing target reticle (double-ripple), current-target HUD chip.
+- **M2 (done):** Resume button on abandoned cards, cross-client socket updates, "Whisper to specific players" roll mode, target-lost warning.
+- **M3 (current):** pulsing target reticle (double-ripple), current-target HUD chip.
 
 ## Known v1 limitations
 

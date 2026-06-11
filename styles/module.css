@@ -334,6 +334,86 @@ body.battlecard-picking #board {
 }
 
 /* ============================================================
+   Battlecard — current-target HUD chip
+   ============================================================ */
+
+.battlecard-hud-chip {
+  position: fixed;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px 4px 4px;
+  border: 1px solid #e24b4a;
+  border-radius: 999px;
+  background: rgba(20, 20, 24, 0.88);
+  color: #f0f0f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  pointer-events: auto;
+}
+
+.battlecard-hud-chip .bc-chip-img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border: none;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+.battlecard-hud-chip .bc-chip-label {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  max-width: 220px;
+}
+
+.battlecard-hud-chip .bc-chip-kicker {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.65;
+}
+
+.battlecard-hud-chip .bc-chip-name {
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.battlecard-hud-chip .bc-chip-extra {
+  opacity: 0.7;
+  font-weight: normal;
+}
+
+.battlecard-hud-chip button {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(226, 75, 74, 0.25);
+  color: #f0b5b4;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.battlecard-hud-chip button:hover {
+  background: rgba(226, 75, 74, 0.6);
+  color: #fff;
+}
+
+/* ============================================================
    Battlecard — chat card
    ============================================================ */
 
