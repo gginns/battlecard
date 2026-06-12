@@ -3,13 +3,13 @@
   <header class="bc-card-header">
     {{#if itemImg}}<img class="bc-card-item-img" src="{{itemImg}}" alt=""/>{{/if}}
     <div class="bc-card-title">
-      <span class="bc-card-actor">{{actorName}}</span>
-      <span class="bc-card-item">{{itemName}}</span>
+      <span class="bc-card-actor" data-tooltip="{{actorName}}">{{actorName}}</span>
+      <span class="bc-card-item" data-tooltip="{{itemName}}">{{itemName}}</span>
     </div>
   </header>
 
   {{#each attacks}}
-    <div class="bc-card-block">
+    <div class="bc-card-block" data-bc-index="{{this.index}}">
       <div class="bc-card-attack-line">
         <span class="bc-card-attack-label">
           {{#if ../multiple}}
@@ -54,6 +54,15 @@
           </div>
           {{#if this.damage.rollHTML}}
             <div class="bc-card-roll">{{{this.damage.rollHTML}}}</div>
+          {{/if}}
+          {{#if this.damage.applied}}
+            <div class="bc-card-applied">
+              <i class="fa-solid fa-heart-crack"></i>
+              <span class="bc-card-applied-label">{{localize "BATTLECARD.Card.AppliedTo"}}</span>
+              {{#each this.damage.applied}}
+                <span class="bc-applied-entry">{{this.name}}{{#if this.adjusted}} ({{this.amount}}){{/if}}</span>
+              {{/each}}
+            </div>
           {{/if}}
         {{/if}}
       {{/if}}

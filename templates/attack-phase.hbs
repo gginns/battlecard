@@ -33,6 +33,17 @@
 
   <div class="bc-formula" aria-live="polite">{{formula}}</div>
 
+  {{#if showAttackModes}}
+    <div class="bc-field">
+      <label>{{localize "BATTLECARD.Dialog.AttackMode"}}</label>
+      <select name="attackMode">
+        {{#each attackModes}}
+          <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+        {{/each}}
+      </select>
+    </div>
+  {{/if}}
+
   <div class="bc-field">
     <label>{{localize "BATTLECARD.Dialog.SituationalBonus"}}</label>
     <input type="text" name="situational" value="{{situational}}" placeholder="+2, +1d4" autocomplete="off"/>

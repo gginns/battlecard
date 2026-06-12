@@ -41,8 +41,9 @@ Hooks.on("dnd5e.preUseActivity", (activity, usageConfig, dialogConfig, messageCo
     // Escape hatch (§3): bypass modifier key → untouched system flow.
     if (isBypassKeyHeld(usageConfig)) return;
 
-    dialogConfig.configure = false;   // no system configuration dialog
-    messageConfig.create = false;     // no system usage chat message
+    dialogConfig.configure = false;        // no system configuration dialog
+    messageConfig.create = false;          // no system usage chat message
+    usageConfig.subsequentActions = false; // no auto attack-roll dialog (AttackActivity._triggerSubsequentActions)
     foundry.utils.setProperty(usageConfig, `${MODULE_ID}.intercepted`, true);
   } catch (e) {
     warn("preUseActivity interception failed — falling back to system flow", e);

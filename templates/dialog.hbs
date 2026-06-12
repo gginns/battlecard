@@ -2,10 +2,10 @@
   <header class="bc-header">
     {{#if actorImg}}<img class="bc-actor-img" src="{{actorImg}}" alt="{{actorName}}"/>{{/if}}
     <div class="bc-header-text">
-      <div class="bc-actor-name">{{actorName}}</div>
+      <div class="bc-actor-name" data-tooltip="{{actorName}}">{{actorName}}</div>
       <div class="bc-item-row">
         {{#if itemImg}}<img class="bc-item-img" src="{{itemImg}}" alt=""/>{{/if}}
-        <span class="bc-item-name">{{itemName}}</span>
+        <span class="bc-item-name" data-tooltip="{{itemName}}">{{itemName}}</span>
         {{#if showAttackCounter}}<span class="bc-attack-counter">{{localize "BATTLECARD.Dialog.AttackN" number=attackNumber}}</span>{{/if}}
       </div>
     </div>

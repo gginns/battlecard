@@ -1,7 +1,7 @@
 import {
-  MODULE_ID, advModes, dnd5eApi, firstTarget, fromUuidCompat, fromUuidSyncCompat, getRollClass,
-  isNumericBonus, log, normalizeBonus, parseToHit, rollModeOptions, showDice, snapshotToken,
-  targetCount, warn
+  MODULE_ID, advModes, damageTypeLabel, dnd5eApi, firstTarget, fromUuidCompat, fromUuidSyncCompat,
+  getRollClass, isNumericBonus, log, normalizeBonus, parseToHit, parseTypedBonus,
+  parseTypedManualDamage, rollModeOptions, showDice, snapshotToken, targetCount, warn
 } from "./util.js";
 import { initialRollMode } from "./settings.js";
 import { createSequenceMessage, refreshMessageDisplay, updateSequenceMessage } from "./chat-card.js";
@@ -168,6 +168,7 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       target: snapshotToken(target),
       multipleTargets: targetCount() > 1,
       advMode: 0,
+      attackMode: this.#defaultAttackMode(),
       situational: "",
       damageSituational: "",
       manualValue: "",
@@ -175,6 +176,29 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       attack: null,
       damage: null
     });
+  }
+
+  /** Valid attack modes for this weapon (one-/two-handed, thrown, ...). */
+  #attackModes() {
+    try {
+      const modes = this.item?.system?.attackModes;
+      const arr = Array.isArray(modes) ? modes : (modes ? Array.from(modes) : []);
+      return arr
+        .map(m => ({ value: m?.value ?? m, label: m?.label ?? String(m?.value ?? m) }))
+        .filter(m => m.value);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  #defaultAttackMode() {
+    const modes = this.#attackModes();
+    if (!modes.length) return "";
+    let last = null;
+    try {
+      last = this.item?.getFlag("dnd5e", `last.${this.activity.id}.attackMode`);
+    } catch (e) { /* flag unreadable */ }
+    return modes.some(m => m.value === last) ? last : modes[0].value;
   }
 
   /** Serializable sequence state stored in the chat card's flags (§6). */
@@ -245,6 +269,8 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
         isDis: entry.advMode === -1,
         formula: this.#attackFormulaDisplay(),
         situational: entry.situational,
+        attackModes: this.#attackModes().map(m => ({ ...m, selected: m.value === entry.attackMode })),
+        showAttackModes: this.#attackModes().length > 1,
         rollModes: rollModeOptions(this.rollMode),
         showWhisperList: this.rollMode === "whisper",
         whisperTargets: this.#whisperTargets(),
@@ -292,6 +318,11 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     el.querySelector('[name="rollMode"]')?.addEventListener("change", ev => {
       this.rollMode = ev.target.value;
       this.render(); // show/hide the whisper recipient list
+    });
+
+    el.querySelector('[name="attackMode"]')?.addEventListener("change", ev => {
+      this.current.attackMode = ev.target.value;
+      this.#refreshFormulaDisplay();
     });
 
     el.querySelectorAll("[data-whisper-id]").forEach(box => box.addEventListener("change", ev => {
@@ -362,8 +393,9 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       warn("Damage formula display failed", e);
     }
     if (!display) display = this.activity?.labels?.damage ?? "";
-    const bonus = normalizeBonus(this.current.damageSituational);
-    if (bonus) display += bonus.startsWith("-") ? ` - ${bonus.slice(1)}` : ` + ${bonus}`;
+    const { untyped, typed } = parseTypedBonus(this.current.damageSituational);
+    if (untyped) display += untyped.startsWith("-") ? ` - ${untyped.slice(1)}` : ` + ${untyped}`;
+    for (const bonus of typed) display += ` + ${bonus.formula} [${damageTypeLabel(bonus.type)}]`;
     return display;
   }
 
@@ -445,6 +477,7 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     const processConfig = {};
     if (advMode === 1) processConfig.advantage = true;
     else if (advMode === -1) processConfig.disadvantage = true;
+    if (entry.attackMode) processConfig.attackMode = entry.attackMode;
 
     Hooks.on("dnd5e.preRollAttack", mutate);
     let rolls;
@@ -535,7 +568,10 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
 
   async #systemDamageRoll(entry, critical) {
     const activity = this.activity;
-    const bonus = normalizeBonus(entry.damageSituational);
+    // Typed bonus damage (e.g. "1d6 fire, 1d8 psychic, +2"): typed entries
+    // become their own damage parts so resistances apply per type; untyped
+    // remainder folds into the first part.
+    const { untyped, typed } = parseTypedBonus(entry.damageSituational);
 
     const mutate = config => {
       try {
@@ -546,11 +582,19 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
           r.options ??= {};
           r.options.isCritical = critical;
         }
-        // Situational damage applies once, to the first damage part.
-        if (bonus && rolls[0]) {
+        if (untyped && rolls[0]) {
           rolls[0].parts ??= [];
-          rolls[0].parts.push(bonus);
+          rolls[0].parts.push(untyped);
         }
+        const data = rolls[0]?.data ?? activity.getRollData?.() ?? {};
+        for (const bonus of typed) {
+          rolls.push({
+            parts: [bonus.formula],
+            data,
+            options: { type: bonus.type, isCritical: critical }
+          });
+        }
+        config.rolls = rolls;
       } catch (e) {
         warn("preRollDamage mutation failed", e);
       }
@@ -559,7 +603,9 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     Hooks.on("dnd5e.preRollDamage", mutate);
     let rolls;
     try {
-      rolls = await activity.rollDamage({ isCritical: critical }, { configure: false }, { create: false });
+      const processConfig = { isCritical: critical };
+      if (entry.attackMode) processConfig.attackMode = entry.attackMode;
+      rolls = await activity.rollDamage(processConfig, { configure: false }, { create: false });
     } catch (e) {
       warn("System damage roll failed", e);
       ui.notifications.error(game.i18n.localize("BATTLECARD.Notifications.RollFailed"));
@@ -571,10 +617,16 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
 
     for (const r of rolls) await showDice(r, this.rollMode, [...this.whisperIds]);
     const total = rolls.reduce((t, r) => t + (r.total ?? 0), 0);
+    const parts = rolls.map(r => ({
+      amount: r.total ?? 0,
+      type: r.options?.type ?? null,
+      properties: [...(r.options?.properties ?? [])]
+    }));
     const typeLabel = this.#damageTypesLabel(rolls);
     const html = (await Promise.all(rolls.map(r => this.#renderRoll(r)))).join("");
     return {
       total,
+      parts,
       typeLabel,
       critical,
       manual: false,
@@ -583,15 +635,24 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
     };
   }
 
+  /**
+   * Manual physical-dice damage: "14" or typed totals "10 slashing, 4 fire".
+   * Untyped segments take the weapon's primary damage type so Apply Damage
+   * can still respect resistances.
+   */
   #manualDamageResult(entry, critical) {
-    const total = Number(entry.manualDamageValue);
-    if (!Number.isFinite(total) || total < 0) {
+    const parsed = parseTypedManualDamage(entry.manualDamageValue);
+    if (!parsed) {
       ui.notifications.warn(game.i18n.localize("BATTLECARD.Notifications.InvalidDamage"));
       return null;
     }
+    const fallbackType = this.#firstDamageTypeKey();
+    const parts = parsed.map(p => ({ amount: p.amount, type: p.type ?? fallbackType, properties: [] }));
+    const types = [...new Set(parts.map(p => p.type).filter(Boolean))];
     return {
-      total,
-      typeLabel: this.#firstDamageTypeLabel(),
+      total: parts.reduce((t, p) => t + p.amount, 0),
+      parts,
+      typeLabel: types.map(damageTypeLabel).join(", "),
       critical,
       manual: true,
       miss: false,
@@ -611,14 +672,13 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       .join(", ");
   }
 
-  #firstDamageTypeLabel() {
+  #firstDamageTypeKey() {
     try {
       const config = this.activity.getDamageConfig?.({});
       const r = config?.rolls?.[0];
-      const type = r?.options?.types?.first?.() ?? [...(r?.options?.types ?? [])][0] ?? r?.options?.type;
-      return type ? game.i18n.localize(CONFIG.DND5E?.damageTypes?.[type]?.label ?? type) : "";
+      return r?.options?.types?.first?.() ?? [...(r?.options?.types ?? [])][0] ?? r?.options?.type ?? null;
     } catch (e) {
-      return "";
+      return null;
     }
   }
 

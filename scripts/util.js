@@ -99,6 +99,73 @@ export function isNumericBonus(str) {
   return /^[+-]?\s*\d+$/.test((str ?? "").trim());
 }
 
+/** Resolve a typed word ("fire", "Fire", localized label) to a damage type key. */
+export function damageTypeKey(word) {
+  if (!word) return null;
+  const types = CONFIG.DND5E?.damageTypes ?? {};
+  const lower = word.toLowerCase();
+  if (lower in types) return lower;
+  for (const [key, cfg] of Object.entries(types)) {
+    const label = game.i18n.localize(cfg.label ?? cfg.name ?? String(cfg));
+    if (label.toLowerCase() === lower) return key;
+  }
+  return null;
+}
+
+/** Localized label for a damage type key; falls back to the key itself. */
+export function damageTypeLabel(type) {
+  if (!type) return "";
+  const cfg = CONFIG.DND5E?.damageTypes?.[type];
+  return game.i18n.localize(cfg?.label ?? cfg?.name ?? type);
+}
+
+/**
+ * Parse a damage bonus string into typed and untyped pieces (§ typed bonus
+ * damage). Comma-separated entries, each "formula [type]":
+ *   "+1d6 fire, 1d8 psychic, +2"
+ * → { untyped: "2", typed: [{formula:"1d6", type:"fire"}, {formula:"1d8", type:"psychic"}] }
+ * Untyped entries are folded into the weapon's first damage part.
+ */
+export function parseTypedBonus(input) {
+  const result = { untyped: "", typed: [] };
+  const segments = (input ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  const untypedParts = [];
+  for (const segment of segments) {
+    const s = segment.replace(/^\+\s*/, "");
+    if (!s) continue;
+    const m = s.match(/^(.*?)\s+([a-zA-Z']+)$/);
+    const type = m ? damageTypeKey(m[2]) : null;
+    const formula = type ? m[1].trim() : s;
+    // A formula needs at least a digit or @-reference ("fire" alone is not one).
+    if (!formula || !/[\d@]/.test(formula)) continue;
+    if (type) result.typed.push({ formula, type });
+    else untypedParts.push(formula);
+  }
+  result.untyped = untypedParts.join(" + ");
+  return result;
+}
+
+/**
+ * Parse a manual (physical dice) damage entry into typed totals:
+ *   "14"  or  "10 slashing, 4 fire"
+ * → [{amount: 10, type: "slashing"}, {amount: 4, type: "fire"}] — type null
+ * when omitted (caller substitutes the weapon's primary type).
+ * Returns null when any segment is invalid.
+ */
+export function parseTypedManualDamage(input) {
+  const segments = (input ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  if (!segments.length) return null;
+  const parts = [];
+  for (const segment of segments) {
+    const m = segment.match(/^(\d+)\s*([a-zA-Z']+)?$/);
+    if (!m) return null;
+    const type = m[2] ? damageTypeKey(m[2]) : null;
+    if (m[2] && !type) return null; // unknown damage type word
+    parts.push({ amount: Number(m[1]), type });
+  }
+  return parts;
+}
+
 /**
  * Parse the flat to-hit modifier from an activity's label (e.g. "+ 9" -> 9).
  * Display/manual-math only — never used for actual rolls.

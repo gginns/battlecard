@@ -1,4 +1,4 @@
-import { MODULE_ID, renderTemplateCompat, warn } from "./util.js";
+import { MODULE_ID, fromUuidSyncCompat, renderTemplateCompat, warn } from "./util.js";
 import { requestMessageUpdate } from "./sockets.js";
 import { BattlecardDialog } from "./attack-dialog.js";
 
@@ -16,7 +16,8 @@ export async function renderCardContent(state) {
 
 function prepareCardContext(state) {
   const attacks = (state.attacks ?? [])
-    .filter(a => a.attack) // only blocks whose attack has been rolled
+    .map((a, index) => ({ ...a, index })) // index into state.attacks, pre-filter
+    .filter(a => a.attack)                // only blocks whose attack has been rolled
     .map((a, i) => ({ ...a, num: i + 1 }));
   return {
     ...state,
@@ -100,6 +101,23 @@ function onRenderChatMessage(message, html) {
     buttons.push(makeButton("fa-solid fa-play", "BATTLECARD.Card.Resume", () => BattlecardDialog.resume(message)));
   }
 
+  // Apply Damage: GM-only, per damage block with typed parts. Applies to the
+  // GM's selected tokens, or to the block's recorded target if none selected.
+  if (game.user.isGM) {
+    for (const blockEl of card.querySelectorAll(".bc-card-block[data-bc-index]")) {
+      const index = Number(blockEl.dataset.bcIndex);
+      const damage = state.attacks?.[index]?.damage;
+      if (!damage || damage.miss || !damage.parts?.length) continue;
+      const line = blockEl.querySelector(".bc-card-damage-line");
+      if (!line) continue;
+      const apply = makeButton("fa-solid fa-heart-crack", "BATTLECARD.Card.Apply",
+        () => applyDamageFromBlock(message, index));
+      apply.classList.add("bc-apply-button");
+      apply.dataset.tooltip = game.i18n.localize("BATTLECARD.Card.ApplyHint");
+      line.append(apply);
+    }
+  }
+
   if (!buttons.length) return;
   const footer = document.createElement("footer");
   footer.className = "bc-card-footer";
@@ -124,4 +142,69 @@ async function revealToAll(message) {
   } catch (e) {
     warn("Reveal to all failed", e);
   }
+}
+
+/* -------------------------------------------- */
+/*  Apply damage (GM only)                      */
+/* -------------------------------------------- */
+
+/**
+ * Apply a damage block through the system's own Actor5e#applyDamage, which
+ * handles each creature's resistances/immunities/vulnerabilities per damage
+ * type. Targets: the GM's currently selected tokens, falling back to the
+ * block's recorded target. Results are appended to the card itself — no new
+ * chat messages.
+ */
+async function applyDamageFromBlock(message, index) {
+  const state = foundry.utils.deepClone(message.getFlag(MODULE_ID, "state"));
+  const damage = state?.attacks?.[index]?.damage;
+  if (!damage?.parts?.length) return;
+
+  // Resolve recipients: selection first, recorded target as fallback.
+  let recipients = (canvas.tokens?.controlled ?? [])
+    .map(t => ({ name: t.name, actor: t.actor }))
+    .filter(r => r.actor);
+  if (!recipients.length) {
+    const target = state.attacks[index].target;
+    const tokenDoc = target?.uuid ? fromUuidSyncCompat(target.uuid) : null;
+    if (tokenDoc?.actor) recipients = [{ name: target.name, actor: tokenDoc.actor }];
+  }
+  if (!recipients.length) {
+    ui.notifications.warn(game.i18n.localize("BATTLECARD.Notifications.ApplyNoTargets"));
+    return;
+  }
+
+  const damages = damage.parts.map(p => ({
+    value: p.amount,
+    type: p.type ?? "",
+    properties: new Set(p.properties ?? [])
+  }));
+
+  const results = [];
+  for (const { name, actor } of recipients) {
+    try {
+      const before = effectiveHP(actor);
+      await actor.applyDamage(damages);
+      const after = effectiveHP(actor);
+      results.push({ name, amount: Math.max(0, before - after) });
+    } catch (e) {
+      warn(`Apply damage to "${name}" failed`, e);
+      ui.notifications.error(game.i18n.format("BATTLECARD.Notifications.ApplyFailed", { name }));
+    }
+  }
+  if (!results.length) return;
+
+  // The note shows the per-creature applied amount only when it differs from
+  // the rolled total (resistance/vulnerability/immunity at work).
+  state.attacks[index].damage.applied = results.map(r => ({
+    name: r.name,
+    amount: r.amount,
+    adjusted: r.amount !== damage.total
+  }));
+  await updateSequenceMessage(message.id, state);
+}
+
+function effectiveHP(actor) {
+  const hp = actor?.system?.attributes?.hp ?? {};
+  return (hp.value ?? 0) + (hp.temp ?? 0);
 }

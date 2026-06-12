@@ -27,8 +27,8 @@
       <button type="button" data-action="done" class="bc-primary">
         <i class="fa-solid fa-check"></i> {{localize "BATTLECARD.Dialog.Done"}}
       </button>
-      <button type="button" data-action="attackAgain">
-        <i class="fa-solid fa-rotate-right"></i> {{localize "BATTLECARD.Dialog.AttackAgain"}}
+      <button type="button" data-action="attackAgain" data-tooltip="{{localize "BATTLECARD.Dialog.AttackAgainHint"}}">
+        <i class="fa-solid fa-rotate-right"></i> {{localize "BATTLECARD.Dialog.AttackAgainWith" item=itemName}}
       </button>
     </footer>
 
@@ -38,13 +38,13 @@
 
     <div class="bc-field">
       <label>{{localize "BATTLECARD.Dialog.SituationalBonus"}}</label>
-      <input type="text" name="situational" value="{{situational}}" placeholder="+1d6, +2" autocomplete="off"/>
+      <input type="text" name="situational" value="{{situational}}" placeholder="+2, 1d6 fire, 1d8 psychic" autocomplete="off"/>
     </div>
 
     {{#if manual}}
       <div class="bc-field bc-manual-field">
         <label><i class="fa-solid fa-hand"></i> {{localize "BATTLECARD.Dialog.ManualDamage"}}</label>
-        <input type="number" name="manualDamageValue" value="{{manualDamageValue}}" min="0" step="1"/>
+        <input type="text" name="manualDamageValue" value="{{manualDamageValue}}" placeholder="14 — or: 10 slashing, 4 fire" autocomplete="off"/>
       </div>
     {{/if}}
 

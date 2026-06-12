@@ -30,10 +30,11 @@ One card in chat tells the whole story.
 - **M1 (done):** interception, two-phase dialog, evolving chat card, manual dice entry, roll modes, Attack Again, auto-clear targets.
 - **M2 (done):** Resume button on abandoned cards, cross-client socket updates, "Whisper to specific players" roll mode, target-lost warning.
 - **M3 (done):** pulsing target reticle (double-ripple). (A current-target HUD chip shipped in 0.3.0 and was removed in 0.3.1 by design decision.)
+- **v0.4.0 (done):** GM-only **Apply** button per damage result (selected tokens or the recorded target; per-creature resistances via the system's `applyDamage`; result noted on the card itself), **typed bonus damage** (`1d6 fire, 1d8 psychic` in the damage bonus field; `10 slashing, 4 fire` in manual entry), **attack-mode picker** for versatile/thrown weapons, suppression of the system's duplicate attack-roll dialog, clearer Attack Again labeling, long-name display hardening.
 
 ## Known v1 limitations
 
 - One target per attack roll; "Attack Again" covers multiattacks.
 - Spell attacks are cast at base level (the system's configuration dialog, where upcasting lives, is suppressed by design — hold Shift to bypass Battlecard when you want to upcast).
-- Bonus dice from features (Hex, Hunter's Mark, Sneak Attack) are typed into the situational bonus field manually.
-- Weapon options normally chosen in the system dialog (versatile one-/two-handed grip, thrown, ammunition choice) use your last-used/default selection. Hold Shift to bypass Battlecard when you need to change them.
+- Bonus dice from features (Hex, Hunter's Mark, Sneak Attack) are typed into the situational bonus field manually — with damage types if you want them (`1d6 fire`).
+- Ammunition choice uses your last-used/default selection. Hold Shift to bypass Battlecard when you need to change it.

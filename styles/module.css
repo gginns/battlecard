@@ -39,6 +39,9 @@
 .bc-actor-name {
   font-weight: bold;
   font-size: var(--font-size-14, 14px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .bc-item-row {
@@ -57,6 +60,10 @@
 .bc-item-name {
   font-style: italic;
   opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .bc-attack-counter {
@@ -111,6 +118,13 @@
 
 .bc-target-name {
   font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bc-target-text {
+  min-width: 0;
 }
 
 .bc-untargeted {
@@ -365,9 +379,25 @@ body.battlecard-picking #board {
   line-height: 1.25;
 }
 
-.bc-card-actor { font-weight: bold; }
+.bc-card-title {
+  min-width: 0;
+}
 
-.bc-card-item { font-style: italic; font-size: var(--font-size-12, 12px); opacity: 0.85; }
+.bc-card-actor {
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bc-card-item {
+  font-style: italic;
+  font-size: var(--font-size-12, 12px);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
 .bc-card-block {
   display: flex;
@@ -409,6 +439,35 @@ body.battlecard-picking #board {
 .bc-manual-tag { opacity: 0.7; font-size: var(--font-size-11, 11px); }
 
 .bc-card-miss { padding: 2px 0; }
+
+.bc-card-damage-line .bc-apply-button {
+  flex: 0 0 auto;
+  width: auto;
+  font-size: var(--font-size-11, 11px);
+  line-height: 1.5;
+  padding: 0 7px;
+  margin-left: auto;
+}
+
+.bc-card-applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 7px;
+  font-size: var(--font-size-11, 11px);
+  opacity: 0.85;
+  padding-left: 2px;
+}
+
+.bc-card-applied-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.bc-applied-entry {
+  font-weight: bold;
+}
 
 .bc-card-roll .dice-roll { margin: 0; }
 
