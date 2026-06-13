@@ -18,6 +18,9 @@
   {{#if targetMissing}}
     <p class="bc-notice"><i class="fa-solid fa-ghost"></i> {{localize "BATTLECARD.Dialog.TargetMissing"}}</p>
   {{/if}}
+  {{#if consumptionNotice}}
+    <p class="bc-consumption"><i class="fa-solid fa-bolt"></i> {{consumptionNotice}}</p>
+  {{/if}}
 
   <div class="bc-adv-toggle" role="group">
     <button type="button" data-action="setAdvantage" data-adv="1" class="bc-adv {{#if isAdv}}active{{/if}}">

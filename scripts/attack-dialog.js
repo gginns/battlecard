@@ -269,6 +269,7 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
         isDis: entry.advMode === -1,
         formula: this.#attackFormulaDisplay(),
         situational: entry.situational,
+        consumptionNotice: this.sequence.attacks.length === 1 ? this.#consumptionNotice() : null,
         attackModes: this.#attackModes().map(m => ({ ...m, selected: m.value === entry.attackMode })),
         showAttackModes: this.#attackModes().length > 1,
         rollModes: rollModeOptions(this.rollMode),
@@ -687,6 +688,51 @@ export class BattlecardDialog extends HandlebarsApplicationMixin(ApplicationV2) 
       return await roll.render();
     } catch (e) {
       return null;
+    }
+  }
+
+  /* -------------------------------------------- */
+  /*  Consumption notice                          */
+  /* -------------------------------------------- */
+
+  /**
+   * Battlecard suppresses the system usage dialog — the place consumption is
+   * normally visible — so resource costs are surfaced here instead.
+   * Consumption is applied by the system at activation, before this dialog
+   * opens, hence the past tense. Display only; never alters behavior.
+   */
+  #consumptionNotice() {
+    try {
+      const targets = this.activity?.consumption?.targets ?? [];
+      if (!targets.length) return null;
+      const described = targets.map(t => this.#describeConsumption(t)).filter(Boolean);
+      if (!described.length) return null;
+      return game.i18n.format("BATTLECARD.Dialog.ConsumedOnUse", { what: described.join(", ") });
+    } catch (e) {
+      return null;
+    }
+  }
+
+  #describeConsumption(target) {
+    const value = target?.value ?? 1;
+    switch (target?.type) {
+      case "itemUses":
+        return game.i18n.format("BATTLECARD.Consumption.ItemUses", { value });
+      case "activityUses":
+        return game.i18n.format("BATTLECARD.Consumption.ActivityUses", { value });
+      case "spellSlots":
+        return game.i18n.format("BATTLECARD.Consumption.SpellSlots", { value });
+      case "material": {
+        const name = this.actor?.items?.get(target.target)?.name
+          ?? game.i18n.localize("BATTLECARD.Consumption.MaterialFallback");
+        return game.i18n.format("BATTLECARD.Consumption.Material", { value, name });
+      }
+      case "hitDice":
+        return game.i18n.format("BATTLECARD.Consumption.HitDice", { value });
+      case "attribute":
+        return game.i18n.format("BATTLECARD.Consumption.Attribute", { value, attribute: target.target ?? "?" });
+      default:
+        return `${value} ${target?.type ?? "?"}`;
     }
   }
 
